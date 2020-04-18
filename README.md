@@ -1,0 +1,95 @@
+Install required packages
+================
+David Kaiser
+2020-04-18
+
+Description
+-----------
+
+This function checks if a specificed set of packages is installed and prompts the user for a decision to install or not. It is meant to be used within other functions that require packages to load.
+
+Arguments
+---------
+
+-   *required* - names of required packages
+-   *fun.name* = "Function" - A name for the function that requires the packages, defaults to "Function"
+
+Result
+------
+
+If any required packages are not installed the response Y (or y) will trigger the installation of missing packages. Any other response will call *stop()*, cancelling the function and the top function, and print a message containing the *fun.name*.
+
+Use within a function
+---------------------
+
+``` r
+test.fun <- function(x){
+  
+  install_required_packages <- function(required,
+                                        fun.name = "Function")
+  {
+    if(
+      !all(required %in% installed.packages())
+    ){
+      missing <- required[!required %in% installed.packages()]
+      response <- readline(prompt=cat("These required packages are missing:\n", missing, "\nDo you wish to install? [Y/N] "))
+      if(response %in% c("y", "Y")){
+        install.packages(missing)
+        cat("\nRequired packages installed!\n\n")
+      } else {
+        stop(paste(fun.name, "interrupted. Required packages not installed. \n"), call. = FALSE)
+      }
+    }
+  }
+  
+  install_required_packages(required = c("lubridate", "data.table", "ggplot2"), fun.name = "test.fun")
+  
+  return(x*10)
+}
+```
+
+In this case I pretend that the function *test.fun* needs "lubridate", "data.table" and "ggplot2"; "lubridate" and "data.table" are not installed, "ggplot2" is. The output would look like this:
+
+``` r
+test.fun(10)
+These required packages are missing:
+ lubridate data.table 
+Do you wish to install? [Y/N] 
+Y
+Installing packages into [your_directory]
+
+  There are binary versions available but the source versions are later:
+           binary source needs_compilation
+lubridate   1.7.4  1.7.8              TRUE
+data.table 1.12.2 1.12.8              TRUE
+
+  Binaries will be installed
+trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.4/lubridate_1.7.4.zip'
+Content type 'application/zip' length 1367572 bytes (1.3 MB)
+downloaded 1.3 MB
+
+trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.4/data.table_1.12.2.zip'
+Content type 'application/zip' length 1926960 bytes (1.8 MB)
+downloaded 1.8 MB
+
+package ‘lubridate’ successfully unpacked and MD5 sums checked
+package ‘data.table’ successfully unpacked and MD5 sums checked
+
+The downloaded binary packages are in
+    C:\Users\David-xps\AppData\Local\Temp\RtmpcjHvfW\downloaded_packages
+
+Required packages installed!
+
+[1] 100
+```
+
+Or like this if you chose not to install:
+
+``` r
+test.fun(10)
+These required packages are missing:
+ lubridate data.table 
+Do you wish to install? [Y/N] 
+N
+Error: test.fun interrupted. Required packages not installed. 
+```
